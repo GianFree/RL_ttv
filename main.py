@@ -63,6 +63,7 @@ for episode in range(episodes):
             print("Goal reached, MOFOS")
         discrete_state = new_discrete_state
         if to_render:
+            print(f"Siamo all'episode {episode}")
             env.render()
 
 env.close()
