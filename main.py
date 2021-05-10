@@ -39,6 +39,7 @@ for episode in range(episodes):
     # Training
     discrete_state = discretize(env.reset())
     if episode % n_show == 0:
+        print(f"Siamo all'episode {episode}")
         to_render = True
     else:
         to_render = False
@@ -63,7 +64,6 @@ for episode in range(episodes):
             print("Goal reached, MOFOS")
         discrete_state = new_discrete_state
         if to_render:
-            print(f"Siamo all'episode {episode}")
             env.render()
 
 env.close()
