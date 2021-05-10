@@ -6,6 +6,8 @@ learning_rate = 0.1
 discount_f = 0.95
 episodes = 30000
 n_show = 5000
+exploration_factor = 0.5
+
 
 # Loading env
 env = gym.make("MountainCar-v0")
@@ -15,7 +17,6 @@ env.reset()
 env_high = env.observation_space.high
 env_low = env.observation_space.low
 env_goal = env.goal_position
-
 
 # Discretisation
 N_grid = 20
@@ -50,7 +51,11 @@ for episode in range(episodes):
         # - esecuzione dell'azione
         # - calcolo ed update reward
         #print(env.action_space.sample( ))
-        action = np.argmax(q_table[discrete_state])
+        if np.random.random() > exploration_factor:
+            action = np.argmax(q_table[discrete_state])
+        else:
+            action = np.random.randint(0,n_actions)
+            
         new_state, reward, done, _ = env.step(action)
         new_discrete_state = discretize(new_state)
         if not done:
