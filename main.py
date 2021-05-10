@@ -6,7 +6,7 @@ import numpy as np
 env = gym.make("MountainCar-v0")
 env.reset()
 
-while True
+while True:
     env.render()
-    
+
 env.close()
