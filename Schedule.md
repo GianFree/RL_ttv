@@ -1,23 +1,14 @@
-# TOPIC
-- How to use gym:
-    - loading and rendering environment
-    - give tasks to cose
+# what we have done:
+- funziona ma non converge
 
+# Thing to do:
+- debug for convergence
+- analisi dell'appredimento in funzione degli iperparametri
 
 # appointment
-- Mon 10th 19:00 - 19.25 start till 21.30
+- Mon 17th 19:00 - 19.25 start till 21.30
 
 ---
 Resources:
 - sentdex
 - books
--
-# Next time
-- carrello on Q-learning and pytorch
-    - Q-algorith
-    - exploration vs exploitation
-    - qualcos'altro
-
-
-
-
