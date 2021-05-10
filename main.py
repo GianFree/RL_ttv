@@ -3,7 +3,7 @@ import numpy as np
 
 #Hyper parameters
 learning_rate = 0.1
-discount_f = 0.90
+discount_f = 0.95
 episodes = 10000
 n_show = 1000
 
