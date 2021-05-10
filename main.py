@@ -4,8 +4,8 @@ import numpy as np
 #Hyper parameters
 learning_rate = 0.1
 discount_f = 0.95
-episodes = 10000
-n_show = 1000
+episodes = 30000
+n_show = 5000
 
 # Loading env
 env = gym.make("MountainCar-v0")
