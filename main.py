@@ -18,7 +18,7 @@ env_goal = env.goal_position
 
 
 # Discretisation
-N_grid = 10
+N_grid = 20
 grid_size = [N_grid]*len(env_high)
 n_actions = env.action_space.n
 discrete_size  = (env_high - env_low)/grid_size
