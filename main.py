@@ -6,7 +6,7 @@ learning_rate = 0.1
 discount_f = 0.95
 episodes = 30000
 n_show = 5000
-exploration_factor = 0.5
+exploration_factor = 0.2
 
 
 # Loading env
@@ -55,7 +55,7 @@ for episode in range(episodes):
             action = np.argmax(q_table[discrete_state])
         else:
             action = np.random.randint(0,n_actions)
-            
+
         new_state, reward, done, _ = env.step(action)
         new_discrete_state = discretize(new_state)
         if not done:
