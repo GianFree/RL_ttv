@@ -1,15 +1,11 @@
-"""
-I'm only Sleeping
-"""
+import gym
+
 import numpy as np
-import torch
-import torchvision
-import matplotlib.pyplot as plt
 
-print(torch.__version__)
-a = np.linspace(0,10,1000)
-b = np.cos(a)
 
-plt.plot(a,b)
-plt.title('riciu')
-plt.show()
+env = gym.make("MountainCar-v0")
+env.reset()
+
+
+env.render()
+env.close()
