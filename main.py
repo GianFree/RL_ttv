@@ -1,14 +1,15 @@
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
+from itertools import product
 #import seaborn as sns
 
 #Hyper parameters
 learning_rate = 0.1
 discount_f = 0.95
-episodes = 25000
+episodes = 20000
 n_show = 2500
-epsilon_start = 0.5
+epsilon_start = 0.1 # fixed for investigating hyperparameters (old = 0.5)
 epsilon_end = 0.1
 start_episode = 0
 end_episode = episodes//2
@@ -50,58 +51,63 @@ def discretize(state):
     discrete_state = (state - env_low)/discrete_size
     return tuple(discrete_state.astype(np.int))
 
+learning_rates = [0.1, 0.5, 0.9]
+discount_factors = [0.0, 0.45, 0.9]
 
-q_table = np.random.uniform(low=-2, high=0, size=(grid_size + [n_actions]))
+episode_dict = dict()
 
-epsilon = epsilon_start
-ep_reward_list = []
-for episode in range(episodes):
-    ep_reward = 0.
-    # Training
-    discrete_state = discretize(env.reset())
-    # epsilon = exploration_factor_2(epsilon)
-    epsilon = exploration_factor(episode)
-    if episode % n_show == 0:
-        print(f"Siamo all'episode {episode}")
-        print(f"Exploration factor: {exploration_factor(episode)}")
-        to_render = True
-    else:
-        to_render = False
-    done = False
-    while not done:
-        # TODO
-        # - come scegliere l'azione
-        # - esecuzione dell'azione
-        # - calcolo ed update reward
-        #print(env.action_space.sample( ))
-        if np.random.random() > epsilon:
-            action = np.argmax(q_table[discrete_state])
+for l_rate, d_factor in product(learning_rates, discount_factors):
+    print(f"Doing learning rate:{l_rate} with discount factor: {d_factor}")
+
+    q_table = np.random.uniform(low=-2, high=0, size=(grid_size + [n_actions]))
+
+    epsilon = epsilon_start
+    ep_reward_list = []
+    for episode in range(episodes):
+        ep_reward = 0.
+        # Training
+        discrete_state = discretize(env.reset())
+        # epsilon = exploration_factor_2(epsilon)
+        # epsilon = exploration_factor(episode)
+        if episode == (episodes - 1):
+            print(f"Siamo all'episode {episode}")
+            #print(f"Exploration factor: {exploration_factor(episode)}")
+            to_render = True
         else:
-            action = np.random.randint(0,n_actions)
+            to_render = False
+        done = False
+        while not done:
+            if np.random.random() > epsilon:
+                action = np.argmax(q_table[discrete_state])
+            else:
+                action = np.random.randint(0,n_actions)
 
-        # print(action)
-        new_state, reward, done, _ = env.step(action)
-        new_discrete_state = discretize(new_state)
+            # print(action)
+            new_state, reward, done, _ = env.step(action)
+            new_discrete_state = discretize(new_state)
 
-        if to_render:
-            env.render()
+            if to_render:
+                env.render()
 
-        ep_reward += reward
-        if not done:
-            max_next_q = np.max(q_table[new_discrete_state])
-            current_q = q_table[discrete_state + (action,)]
-            new_q_value = (1-learning_rate)*current_q + learning_rate*(reward + discount_f*max_next_q)
-            q_table[discrete_state + (action,)] = new_q_value
+            ep_reward += reward
+            if not done:
+                max_next_q = np.max(q_table[new_discrete_state])
+                current_q = q_table[discrete_state + (action,)]
+                new_q_value = (1-l_rate)*current_q + l_rate*(reward + d_factor*max_next_q)
+                q_table[discrete_state + (action,)] = new_q_value
 
-        elif new_state[0] >= env_goal:
-            q_table[new_discrete_state + (action, )] = 0
-            print(f"Goal reached at episode: {episode}, MOFOS")
-        discrete_state = new_discrete_state
+            elif new_state[0] >= env_goal:
+                q_table[new_discrete_state + (action, )] = 0
+                print(f"Goal reached at episode: {episode}, MOFOS")
+            discrete_state = new_discrete_state
 
-    if episode % 5000 == 0:
-        np.save(f"q_table_{episode}.npy", q_table)
+        if episode == (episodes - 1):
+            np.save(f"q_table_{l_rate}_{d_factor}.npy", q_table)
 
-    ep_reward_list.append(ep_reward)
+        ep_reward_list.append(ep_reward)
+
+    #after investigating the pair l_rate and d_factor, we save the result
+    episode_dict[f"{l_rate}-{d_factor}"] = ep_reward_list
 
 env.close()
 
