@@ -48,6 +48,7 @@ class Regression(nn.Module):
         x = fnc.relu(self.fc1(x))
         x = fnc.relu(self.fc2(x))
         x = self.fc3(x)
+        return x
 
 regression_net = Regression()
 
@@ -57,11 +58,19 @@ loss_function = nn.MSELoss()
 optimizer = optim.SGD(regression_net.parameters(),lr = 1e-3)
 
 # 3. Training the Network
-predictions = regression_net(x)
-loss = loss_function(predictions,y)
+epochs = 20
+loss_history = []
+for epoch in range(epochs):
+    predictions = regression_net(x)
+    loss = loss_function(predictions,y)
 
-optimizer.zero_grad()
-loss.backward()
+    optimizer.zero_grad()
+    if epoch == (epochs-1):
+        loss.backward()
+    else:
+        loss.backward(retain_graph=True)
 
-optimizer.step()
-print(loss.item())
+
+    optimizer.step()
+    print(f"Epoch {epoch} with Loss: {loss.item()}")
+    loss_history.append(loss.item())
