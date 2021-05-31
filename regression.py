@@ -52,13 +52,15 @@ class Regression(nn.Module):
         super(Regression, self).__init__()
         self.fc1 = nn.Linear(in_features=1,  out_features=200)
         self.fc2 = nn.Linear(in_features=200, out_features=100)
-        self.fc3 = nn.Linear(in_features=100, out_features=1)
+        self.fc3 = nn.Linear(in_features=100, out_features=50)
+        self.fc4 = nn.Linear(in_features=50, out_features=1)
 
 
     def forward(self, x):
         x = fnc.leaky_relu(self.fc1(x))
         x = fnc.leaky_relu(self.fc2(x))
-        x = self.fc3(x)
+        x = fnc.leaky_relu(self.fc3(x))
+        x = self.fc4(x)
         return x
 
 
