@@ -21,7 +21,11 @@ import torch.nn.functional as fnc
 import torch.optim as optim
 import seaborn as sns
 import numpy as np
+import matplotlib.pyplot as plt
+import os
 
+outdir_name = 'out_images'
+os.mkdir(outdir_name)
 
 # 1. Defining the input set (and allowing gradients)
 def f(x):
@@ -50,6 +54,8 @@ class Regression(nn.Module):
         x = self.fc3(x)
         return x
 
+
+
 regression_net = Regression()
 
 # Loss function - Do we need to specify a `reduction` as keyarg?
@@ -58,7 +64,7 @@ loss_function = nn.MSELoss()
 optimizer = optim.SGD(regression_net.parameters(),lr = 1e-3)
 
 # 3. Training the Network
-epochs = 20
+epochs = 200
 loss_history = []
 for epoch in range(epochs):
     predictions = regression_net(x)
@@ -74,3 +80,8 @@ for epoch in range(epochs):
     optimizer.step()
     print(f"Epoch {epoch} with Loss: {loss.item()}")
     loss_history.append(loss.item())
+
+    plt.clf()
+    plt.plot(x.data.numpy().squeeze(), y.data.numpy().squeeze(), 'b.')
+    plt.plot(x.data.numpy().squeeze(), predictions.data.numpy().squeeze(), 'r-')
+    plt.savefig(f"{outdir_name}/regression_{epoch}.png")
