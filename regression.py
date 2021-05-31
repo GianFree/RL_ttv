@@ -46,13 +46,13 @@ class Regression(nn.Module):
     def __init__(self):
         super(Regression, self).__init__()
         self.fc1 = nn.Linear(in_features=1,  out_features=10)
-        #self.fc2 = nn.Linear(in_features=20, out_features=10)
+        self.fc2 = nn.Linear(in_features=20, out_features=10)
         self.fc3 = nn.Linear(in_features=10, out_features=1)
 
 
     def forward(self, x):
         x = fnc.leaky_relu(self.fc1(x))
-        #x = fnc.relu(self.fc2(x))
+        x = fnc.relu(self.fc2(x))
         x = self.fc3(x)
         return x
 
@@ -80,7 +80,9 @@ for epoch in range(epochs):
 
 
     optimizer.step()
-    print(f"Epoch {epoch} with Loss: {loss.item()}")
+    if epoch%250 == 0:
+        print(f"Epoch {epoch} with Loss: {loss.item()}")
+
     loss_history.append(loss.item())
 
     plt.clf()
@@ -89,11 +91,15 @@ for epoch in range(epochs):
     plt.title("Leaky ReLu activation")
     plt.savefig(f"{outdir_name}/regression_{epoch}.png")
 
-
-while True:
-    user_input = input("Tell me a number")
-    if user_input == 'q':
-        break
-    user_input = torch.float(user_input)
-    y_pred = regression_net(torch.unsqueeze(user_input, dim=1))
-    print(f"Correct value: {f(user_input)} - Prediction {y_pred.data.numpy().squeeze()}")
+plt.clf()
+plt.plot(loss_history)
+plt.xlabel("Epoch")
+plt.ylabel("MSE")
+plt.title("Cubic Function")
+#while True:
+#    user_input = input("Tell me a number")
+#    if user_input == 'q':
+#        break
+#    user_input = torch.float(user_input)
+#    y_pred = regression_net(torch.unsqueeze(user_input, dim=1))
+#    print(f"Correct value: {f(user_input)} - Prediction {y_pred.data.numpy().squeeze()}")
