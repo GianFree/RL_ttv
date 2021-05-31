@@ -66,7 +66,7 @@ loss_function = nn.MSELoss()
 optimizer = optim.SGD(regression_net.parameters(),lr = 1e-3)
 
 # 3. Training the Network
-epochs = 200
+epochs = 500
 loss_history = []
 for epoch in range(epochs):
     predictions = regression_net(x)
@@ -86,4 +86,5 @@ for epoch in range(epochs):
     plt.clf()
     plt.plot(x.data.numpy().squeeze(), y.data.numpy().squeeze(), 'b.')
     plt.plot(x.data.numpy().squeeze(), predictions.data.numpy().squeeze(), 'r-')
+    plt.title("ReLu activation")
     plt.savefig(f"{outdir_name}/regression_{epoch}.png")
