@@ -51,7 +51,7 @@ class Regression(nn.Module):
 
 
     def forward(self, x):
-        x = fnc.relu(self.fc1(x))
+        x = fnc.leaky_relu(self.fc1(x))
         #x = fnc.relu(self.fc2(x))
         x = self.fc3(x)
         return x
@@ -86,5 +86,5 @@ for epoch in range(epochs):
     plt.clf()
     plt.plot(x.data.numpy().squeeze(), y.data.numpy().squeeze(), 'b.')
     plt.plot(x.data.numpy().squeeze(), predictions.data.numpy().squeeze(), 'r-')
-    plt.title("ReLu activation")
+    plt.title("Leaky ReLu activation")
     plt.savefig(f"{outdir_name}/regression_{epoch}.png")
