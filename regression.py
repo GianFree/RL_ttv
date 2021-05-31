@@ -35,7 +35,7 @@ def f(x):
     return x**3
 
 
-x = torch.unsqueeze(torch.linspace(-2, 2,100, requires_grad=True),dim=1)
+x = torch.unsqueeze(torch.linspace(-2, 2, 200, requires_grad=True),dim=1)
 y = f(x) + torch.rand(x.size())
 
 
