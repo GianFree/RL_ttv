@@ -25,8 +25,10 @@ import matplotlib.pyplot as plt
 import os
 
 outdir_name = 'out_images'
-os.mkdir(outdir_name)
-
+try:
+    os.mkdir(outdir_name)
+except FileExistsError:
+    print("Directory already created")
 # 1. Defining the input set (and allowing gradients)
 def f(x):
     """Unknown function"""
