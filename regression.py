@@ -22,13 +22,18 @@ import torch.optim as optim
 import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
-import os
+import os, glob
+
 
 outdir_name = 'out_images'
 try:
     os.mkdir(outdir_name)
 except FileExistsError:
     print("Directory already created")
+
+for f in glob.glob(f"{outdir_name}/*.png"):
+    os.remove(f)
+
 # 1. Defining the input set (and allowing gradients)
 def f(x):
     """Unknown function"""
@@ -45,9 +50,9 @@ sns.scatterplot(x=x.data.numpy().squeeze(),y=y.data.numpy().squeeze())
 class Regression(nn.Module):
     def __init__(self):
         super(Regression, self).__init__()
-        self.fc1 = nn.Linear(in_features=1,  out_features=20)
-        self.fc2 = nn.Linear(in_features=20, out_features=10)
-        self.fc3 = nn.Linear(in_features=10, out_features=1)
+        self.fc1 = nn.Linear(in_features=1,  out_features=200)
+        self.fc2 = nn.Linear(in_features=200, out_features=100)
+        self.fc3 = nn.Linear(in_features=100, out_features=1)
 
 
     def forward(self, x):
