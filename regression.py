@@ -32,7 +32,7 @@ except FileExistsError:
 # 1. Defining the input set (and allowing gradients)
 def f(x):
     """Unknown function"""
-    return 2.5 * x
+    return x**3
 
 
 x = torch.unsqueeze(torch.linspace(-2, 2,100, requires_grad=True),dim=1)
@@ -66,7 +66,7 @@ loss_function = nn.MSELoss()
 optimizer = optim.SGD(regression_net.parameters(),lr = 1e-3)
 
 # 3. Training the Network
-epochs = 500
+epochs = 750
 loss_history = []
 for epoch in range(epochs):
     predictions = regression_net(x)
@@ -88,3 +88,12 @@ for epoch in range(epochs):
     plt.plot(x.data.numpy().squeeze(), predictions.data.numpy().squeeze(), 'r-')
     plt.title("Leaky ReLu activation")
     plt.savefig(f"{outdir_name}/regression_{epoch}.png")
+
+
+while True:
+    user_input = input("Tell me a number")
+    if user_input == 'q':
+        break
+    user_input = torch.float(user_input)
+    y_pred = regression_net(torch.unsqueeze(user_input, dim=1))
+    print(f"Correct value: {f(user_input)} - Prediction {y_pred.data.numpy().squeeze()}")
