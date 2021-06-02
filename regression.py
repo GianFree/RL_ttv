@@ -15,6 +15,8 @@
 
 import torch
 import torch.utils.data as Data
+from torch.utils.data import Dataset, Subset
+from torch.utils.data import DataLoader, random_split
 import torch.nn as nn
 import torch.nn.functional as fnc
 import torch.optim as optim
@@ -22,9 +24,27 @@ import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 import os, glob
+import sklearn
+from sklearn.model_selection import train_test_split
 
-# sns.set_style("darkgrid")
-sns.set_context("talk")
+
+
+
+class CustomRegressionDataset(Dataset):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __len__(self):
+        return len(self.x)
+
+    def __getitem__(self, idx):
+        return self.x[idx], self.y[idx]
+
+
+
+sns.set_style("darkgrid")
+#sns.set_context("paper")
 
 
 # Using cuda or not
@@ -47,15 +67,46 @@ def f(x):
     return x**3
 
 
-x = torch.unsqueeze(torch.linspace(-2, 2, 200, requires_grad=True, device=device),dim=1)
-y = f(x) + torch.rand(x.size(), device=device)
+
+
+x = torch.unsqueeze(torch.linspace(-5, 5, 100, requires_grad=True, device=device),dim=1)
+y = f(x) + 10*torch.rand(x.size(), device=device)
+
+
+dataset = CustomRegressionDataset(x,y)
+
+train, val, test = random_split(dataset, [60,20,20])
+
+train_x = x[train.indices]
+train_y = y[train.indices]
+val_x = x[val.indices]
+val_y = y[val.indices]
+test_x = x[test.indices]
+test_y = y[test.indices]
+
+train_dataset = CustomRegressionDataset(train_x,train_y)
+val_dataset   = CustomRegressionDataset(val_x, val_y)
+test_dataset  = CustomRegressionDataset(test_x,test_y)
+
+b_size = 5
+train_dataloader = DataLoader(train_dataset, batch_size=b_size, shuffle=True)
+val_dataloader   = DataLoader(val_dataset)
+test_dataloader  = DataLoader(test_dataset)
 
 if device == 'cuda':
-    x_cpu = x.cpu()
-    y_cpu = y.cpu()
+    train_x_cpu = train_x.cpu()
+    train_y_cpu = train_y.cpu()
+    val_x_cpu   = val_x.cpu()
+    val_y_cpu   = val_y.cpu()
+    test_x_cpu  = test_x.cpu()
+    test_y_cpu  = test_y.cpu()
 
 
-sns.scatterplot(x=x_cpu.data.numpy().squeeze(),y=y_cpu.data.numpy().squeeze())
+
+sns.scatterplot(x=train_x_cpu.data.numpy().squeeze(),y=train_y_cpu.data.numpy().squeeze(), color='C0');
+sns.scatterplot(x=val_x_cpu.data.numpy().squeeze(),y=val_y_cpu.data.numpy().squeeze(), color='C1');
+sns.scatterplot(x=test_x_cpu.data.numpy().squeeze(),y=test_y_cpu.data.numpy().squeeze(), color='C2');
+plt.show()
 
 # 2. Defining the neural network
 class Regression(nn.Module):
@@ -79,41 +130,72 @@ class Regression(nn.Module):
 regression_net = Regression()
 if device == 'cuda':
     regression_net.cuda()
-
 # Loss function - Do we need to specify a `reduction` as keyarg?
 loss_function = nn.MSELoss()
 # optimizer
 optimizer = optim.SGD(regression_net.parameters(),lr = 1e-3)
 
 
+### Training loop
+def training_routine(dataloader, model, loss_fn, optimizer):
+    size = len(dataloader.dataset)
+    for batch, (X,y) in enumerate(dataloader):
+        #prediction
+        pred = model(X)
+        loss = loss_fn(pred,y)
+
+        #backpropagation
+        optimizer.zero_grad()
+        if epoch == (epochs-1):
+            loss.backward()
+        else:
+            loss.backward(retain_graph=True)
+        optimizer.step()
+
+        if batch % 1 == 0:
+            loss, current = loss.item(), batch * len(X)
+            print(f"loss: {loss:>7f}")
+    return loss
+
+
+def test_routine(test_dataloader, model, loss_fn):
+    size = len(test_dataloader.dataset)
+    test_loss = 0
+
+    with torch.no_grad():
+        for X,y in test_dataloader:
+            # prediction
+            pred = model(X)
+            test_loss += loss_fn(pred, y).item()
+
+    test_loss /= size
+
+    print(f"Test Error:\n Avg loss: {test_loss:>8f} \n")
+    return test_loss
+
+
+
 # 3. Training the Network
-epochs = 750
-loss_history = []
+epochs = 1500
+val_loss_history = []
 for epoch in range(epochs):
-    predictions = regression_net(x)
-    loss = loss_function(predictions,y)
-
-    optimizer.zero_grad()
-    if epoch == (epochs-1):
-        loss.backward()
-    else:
-        loss.backward(retain_graph=True)
-
-
-    optimizer.step()
-    if epoch%250 == 0:
-        print(f"Epoch {epoch} with Loss: {loss.item()}")
-
-    loss_history.append(loss.item())
+    training_routine(dataloader=train_dataloader, model=regression_net, loss_fn=loss_function, optimizer=optimizer)
+    predictions = regression_net(dataset.x)
+    loss_fake = loss_function(predictions,y)# for graphics purpose
+    val_loss_history.append(test_routine(val_dataloader, model=regression_net, loss_fn=loss_function))
 
     if device == "cuda":
         predictions_cpu = predictions.cpu()
 
     plt.clf()
-    sns.scatterplot(x=x_cpu.data.numpy().squeeze(), y=y_cpu.data.numpy().squeeze(), color='C0',alpha = 0.6)
-    sns.lineplot(x=x_cpu.data.numpy().squeeze(), y=predictions_cpu.data.numpy().squeeze(), color='C3')
+    fig, ax = plt.subplots(figsize=(8,6))
+    sns.scatterplot(x=train_x_cpu.data.numpy().squeeze(), y=train_y_cpu.data.numpy().squeeze(), label="$x^3+\eta_{noise}$", color='C0',alpha = 0.6, ax=ax)
+    sns.lineplot(x=x.cpu().data.numpy().squeeze(), y=predictions_cpu.data.numpy().squeeze(), label="$f_{approx}(x)$", color='C3', ax=ax)
+    plt.ylim(-150, 150)
+    plt.text(-1.97, 101, f"MSE: {loss_fake.item():>6.3f}", horizontalalignment='left', color='black', weight='semibold')
     plt.title("Leaky ReLu activation")
-    plt.savefig(f"{outdir_name}/regression_{epoch}.png")
+    plt.savefig(f"{outdir_name}/regression_{epoch}.png", dpi=150)
+    plt.close()
 
 plt.clf()
 plt.plot(loss_history)
