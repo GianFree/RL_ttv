@@ -15,7 +15,6 @@
 
 import torch
 import torch.utils.data as Data
-from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as fnc
 import torch.optim as optim
@@ -23,6 +22,14 @@ import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 import os, glob
+
+# sns.set_style("darkgrid")
+sns.set_context("talk")
+
+
+# Using cuda or not
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print(f'Using {device} device')
 
 
 outdir_name = 'out_images'
@@ -40,11 +47,15 @@ def f(x):
     return x**3
 
 
-x = torch.unsqueeze(torch.linspace(-2, 2, 200, requires_grad=True),dim=1)
-y = f(x) + torch.rand(x.size())
+x = torch.unsqueeze(torch.linspace(-2, 2, 200, requires_grad=True, device=device),dim=1)
+y = f(x) + torch.rand(x.size(), device=device)
+
+if device == 'cuda':
+    x_cpu = x.cpu()
+    y_cpu = y.cpu()
 
 
-sns.scatterplot(x=x.data.numpy().squeeze(),y=y.data.numpy().squeeze())
+sns.scatterplot(x=x_cpu.data.numpy().squeeze(),y=y_cpu.data.numpy().squeeze())
 
 # 2. Defining the neural network
 class Regression(nn.Module):
@@ -66,11 +77,14 @@ class Regression(nn.Module):
 
 
 regression_net = Regression()
+if device == 'cuda':
+    regression_net.cuda()
 
 # Loss function - Do we need to specify a `reduction` as keyarg?
 loss_function = nn.MSELoss()
 # optimizer
 optimizer = optim.SGD(regression_net.parameters(),lr = 1e-3)
+
 
 # 3. Training the Network
 epochs = 750
@@ -92,9 +106,12 @@ for epoch in range(epochs):
 
     loss_history.append(loss.item())
 
+    if device == "cuda":
+        predictions_cpu = predictions.cpu()
+
     plt.clf()
-    plt.plot(x.data.numpy().squeeze(), y.data.numpy().squeeze(), 'b.')
-    plt.plot(x.data.numpy().squeeze(), predictions.data.numpy().squeeze(), 'r-')
+    sns.scatterplot(x=x_cpu.data.numpy().squeeze(), y=y_cpu.data.numpy().squeeze(), color='C0',alpha = 0.6)
+    sns.lineplot(x=x_cpu.data.numpy().squeeze(), y=predictions_cpu.data.numpy().squeeze(), color='C3')
     plt.title("Leaky ReLu activation")
     plt.savefig(f"{outdir_name}/regression_{epoch}.png")
 
