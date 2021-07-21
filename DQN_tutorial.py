@@ -17,6 +17,12 @@ import torchvision.transforms as T
 # https://stackoverflow.com/questions/53836136/why-unwrap-an-openai-gym
 env = gym.make('CartPole-v0').unwrapped
 
+# set up matplotlib
+is_ipython = 'inline' in matplotlib.get_backend()
+if is_ipython:
+    from IPython import display
+
+plt.ion()
 
 # Wanna use GPU if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -272,5 +278,5 @@ for i_episode in range(num_episodes):
 print('Complete')
 env.render()
 env.close()
-#plt.ioff()
+plt.ioff()
 plt.show()
