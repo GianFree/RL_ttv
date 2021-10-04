@@ -138,7 +138,7 @@ def get_screen():
     if screen.shape[1:] != (400,600):
         # Cart is in the lower half, so strip off the top and bottom of the screen
         _, screen_height, screen_width = screen.shape
-        screen = screen[:, int(screen_height*0.5):int(screen_height * 0.5)]
+        screen = screen[:, int(screen_height*0.5):int(screen_width * 0.5)]
     print(f"Screen dimensions: {screen.shape}")
     screen = np.ascontiguousarray(screen, dtype=np.float32) / 255
     screen = torch.from_numpy(screen)
