@@ -135,6 +135,7 @@ def get_screen():
     # Returned screen requested by gym is 400x600x3, but is sometimes larger
     # such as 800x1200x3. Transpose it into torch order (CHW).
     screen = env.render(mode='rgb_array').transpose((2, 0, 1))
+    print(f"Before = Screen dimensions: {screen.shape}")
     if screen.shape[1:] != (400,600):
         # Cart is in the lower half, so strip off the top and bottom of the screen
         _, screen_height, screen_width = screen.shape
